@@ -1,24 +1,31 @@
-import { PrismaClient } from '@/generated/prisma'
+import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
-const prisma = new PrismaClient({})
+const prisma = new PrismaClient()
 
 async function main() {
-  console.log('Seed jalan...')
+  const password = await bcrypt.hash('admin123', 10)
 
-  // contoh insert (optional)
-  // await prisma.user.create({
-  //   data: {
-  //     name: 'Admin',
-  //     email: 'admin@mail.com',
-  //   },
-  // })
+  await prisma.user.upsert({
+    where: { username: 'admin' },
+    update: {},
+    create: {
+      username: 'admin',
+      password,
+      name: 'Administrator',
+      role: 'admin',
+    },
+  })
+
+  console.log('✅ Seed success: admin created')
 }
 
 main()
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
-  })
-  .finally(async () => {
+  .then(async () => {
     await prisma.$disconnect()
+  })
+  .catch(async (e) => {
+    console.error(e)
+    await prisma.$disconnect()
+    process.exit(1)
   })

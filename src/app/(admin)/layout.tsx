@@ -4,7 +4,10 @@ import { useSidebar } from "@/context/SidebarContext";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
+import Providers from "./providers";
 import React from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { ConfirmProvider } from "@/components/ui/Provider/ConfrimProvider";
 
 export default function AdminLayout({
   children,
@@ -13,26 +16,32 @@ export default function AdminLayout({
 }) {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
 
-  // Dynamic class for main content margin based on sidebar state
   const mainContentMargin = isMobileOpen
     ? "ml-0"
     : isExpanded || isHovered
     ? "lg:ml-[290px]"
     : "lg:ml-[90px]";
 
+  const { isReady } = useAuth(true);
+
+  if (!isReady) return <div>Loading...</div>;
+
   return (
     <div className="min-h-screen xl:flex">
-      {/* Sidebar and Backdrop */}
       <AppSidebar />
       <Backdrop />
-      {/* Main Content Area */}
+
       <div
-        className={`flex-1 transition-all  duration-300 ease-in-out ${mainContentMargin}`}
+        className={`flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}
       >
-        {/* Header */}
         <AppHeader />
-        {/* Page Content */}
-        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">{children}</div>
+
+        {/* ✅ CUKUP SATU PROVIDER */}
+        <Providers>
+          <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
+            {children}
+          </div>
+        </Providers>
       </div>
     </div>
   );

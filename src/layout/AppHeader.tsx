@@ -122,7 +122,7 @@ const AppHeader: React.FC = () => {
 
           <div className="hidden lg:block">
             <form>
-              <div className="relative">
+              {/* <div className="relative">
                 <span className="absolute -translate-y-1/2 left-4 top-1/2 pointer-events-none">
                   <svg
                     className="fill-gray-500 dark:fill-gray-400"
@@ -151,7 +151,7 @@ const AppHeader: React.FC = () => {
                   <span> ⌘ </span>
                   <span> K </span>
                 </button>
-              </div>
+              </div> */}
             </form>
           </div>
         </div>
