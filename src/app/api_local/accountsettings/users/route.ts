@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { wsSender } from "@/lib/ws/wsSender";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
         role: body.role || "USER",
       },
     });
-
+   wsSender.reload('/accountsettings')
     return NextResponse.json(user);
   } catch (error: any) {
     return NextResponse.json(

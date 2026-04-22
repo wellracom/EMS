@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserFromToken } from "@/lib/auth/auth";
 import bcrypt from "bcrypt";
+import { wsSender } from "@/lib/ws/wsSender";
 
 // UPDATE user
 export async function PUT(
@@ -28,7 +29,7 @@ export async function PUT(
       where: { id }, // ✅ sekarang aman
       data,
     });
-
+   wsSender.reload('/accountsettings')
     return NextResponse.json(user);
   } catch (error: any) {
     console.error(error);
@@ -49,7 +50,7 @@ export async function DELETE(
     await prisma.user.delete({
       where: { id: id },
     });
-
+       wsSender.reload('/accountsettings')
     return NextResponse.json({ message: "Deleted" });
   } catch (error: any) {
     return NextResponse.json(

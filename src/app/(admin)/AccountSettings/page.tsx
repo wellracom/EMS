@@ -5,7 +5,10 @@ import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import UserModal from "@/components/AccountSettings/AccountSettingsModal";
 import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/apiclient/apiClient";
-
+import { useBrowserURLInfo } from "@/hooks/useBrowserURLInfo";
+import { useWS } from "@/hooks/useWS";
+import { useEnvParam } from "@/hooks/useEnv";
+import WSStatusIndicator from "@/components/ui/WSConnection/WSStatusIndicator";
 // ================= TYPES =================
 type Role = "admin" | "operator" | "supervisor" | "maintanace";
 
@@ -34,11 +37,26 @@ export default function AccountManagement() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
   const { user } = useAuth();
+  const WS =useWS()
+  const info = useBrowserURLInfo();
+    const { env: wsPort } = useEnvParam("WS_PORT");
+   useEffect(() => {
+    if (!info?.hostname) return;
+
+    WS.connect(`ws://${info.hostname}:${wsPort}/accountsettings`);
+  }, [info, wsPort]);
+
+useEffect(() => {
+  if (WS.data?.type === "reload") {
+    fetchUsers();
+  }
+}, [WS.data]);
+
 
   // ================= FETCH USERS =================
   const fetchUsers = async () => {
     try {
-      setLoading(true);
+      //setLoading(true);
 
       const data = await apiClient<User[]>(
         "/api_local/accountsettings/users",
@@ -150,7 +168,8 @@ export default function AccountManagement() {
 
         {/* HEADER */}
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Account Management</h1>
+          
+          <h1 className="text-2xl font-bold"><WSStatusIndicator status={WS.status}/> Account Management</h1>
 
           <button
             onClick={() => openModal()}

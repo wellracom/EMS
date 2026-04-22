@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/apiclient/apiClient";
 import { useAlert } from "@/components/ui/Provider/AlertProvider";
+
 export default function ProfilePage() {
   const { user, mutate } = useAuth();
+  const { showAlert } = useAlert();
 
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -18,6 +20,8 @@ export default function ProfilePage() {
     newPassword: "",
     confirmPassword: "",
   });
+
+  const [fieldErrors, setFieldErrors] = useState<any>({});
 
   // ================= FETCH USER =================
   useEffect(() => {
@@ -54,79 +58,106 @@ export default function ProfilePage() {
   }, [user?.id]);
 
   // ================= VALIDATION =================
- const { showAlert } = useAlert();
+  const validate = () => {
+    const errors: any = {};
 
-const validate = () => {
-  if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) {
-    return "Invalid email format";
-  }
+    if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) {
+      errors.email = "Invalid email format";
+    }
 
-  if (form.newPassword || form.oldPassword || form.confirmPassword) {
-    if (!form.oldPassword) return "Old password is required";
+    const isChangingPassword =
+      form.oldPassword || form.newPassword || form.confirmPassword;
 
-    if (form.newPassword.length < 6)
-      return "Password must be at least 6 characters";
+    if (isChangingPassword) {
+      if (!form.oldPassword) {
+        errors.oldPassword = "Old password is required";
+      }
 
-    if (form.newPassword !== form.confirmPassword)
-      return "Confirm password does not match"; // 🔥 MATCH VALIDATION
-  }
+      if (!form.newPassword) {
+        errors.newPassword = "New password is required";
+      } else if (form.newPassword.length < 6) {
+        errors.newPassword = "Minimum 6 characters";
+      }
 
-  return null;
-};
+      if (!form.confirmPassword) {
+        errors.confirmPassword = "Confirm password is required";
+      } else if (form.newPassword !== form.confirmPassword) {
+        errors.confirmPassword = "Password does not match";
+      }
+    }
+
+    return errors;
+  };
 
   // ================= SUBMIT =================
-const handleSubmit = async () => {
-  const error = validate();
+  const handleSubmit = async () => {
+    const errors = validate();
+    setFieldErrors(errors);
 
-  if (error) {
-    showAlert("error", error);
-    return;
-  }
+    if (Object.keys(errors).length > 0) {
+      Object.values(errors).forEach((msg) =>
+        showAlert("error", msg as string)
+      );
+      return;
+    }
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const res = await apiClient(`/api_local/accountsettings/profile/${user?.id}`, {
-      method: "PUT",
-      body: {
-        name: form.name,
-        email: form.email,
-        oldPassword: form.oldPassword,
-        newPassword: form.newPassword,
-      },
-      toast: {
-        success: "Profile updated successfully",
-        error: "Failed to update profile",
-      },
-    });
+      const res = await apiClient(
+        `/api_local/accountsettings/profile/${user?.id}`,
+        {
+          method: "PUT",
+          body: {
+            name: form.name,
+            email: form.email,
+            oldPassword: form.oldPassword,
+            newPassword: form.newPassword,
+          },
+          toast: {
+            success: "Profile updated successfully",
+            error: "Failed to update profile",
+          },
+        }
+      );
 
-    // 🔥 pastikan ada response
-    if (!res) throw new Error("No response from server");
+      if (!res) throw new Error("No response from server");
 
-    showAlert("success", "Profile updated!");
+      showAlert("success", "Profile updated!");
 
-    mutate(); // refresh auth data
+      mutate();
 
-    // reset password field
-    setForm((prev) => ({
-      ...prev,
-      oldPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    }));
+      setForm((prev) => ({
+        ...prev,
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      }));
 
-  } catch (err: any) {
-    console.error(err);
-    showAlert("error", err.message || "Something went wrong");
-  } finally {
-    setLoading(false);
-  }
-};
+      setFieldErrors({});
+    } catch (err: any) {
+      console.error(err);
+      showAlert("error", err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // ================= UI HELPER =================
+  const inputClass = (field: string) =>
+    `w-full p-2 mt-1 rounded ${
+      fieldErrors[field]
+        ? "border border-red-500 bg-red-50 dark:bg-red-900/20"
+        : "bg-gray-100 dark:bg-gray-700"
+    }`;
 
-useEffect(() => {
-  showAlert("success", "TEST ALERT");
-}, []);
+  const errorText = (field: string) =>
+    fieldErrors[field] ? (
+      <p className="text-xs text-red-500 mt-1 animate-fadeIn">
+        {fieldErrors[field]}
+      </p>
+    ) : null;
+
   // ================= LOADING =================
   if (!user || loadingUser) {
     return <div className="p-6">Loading profile...</div>;
@@ -177,23 +208,25 @@ useEffect(() => {
           <div>
             <label className="text-sm">Name</label>
             <input
-              className="w-full p-2 mt-1 rounded bg-gray-100 dark:bg-gray-700"
+              className={inputClass("name")}
               value={form.name}
               onChange={(e) =>
                 setForm({ ...form, name: e.target.value })
               }
             />
+            {errorText("name")}
           </div>
 
           <div>
             <label className="text-sm">Email</label>
             <input
-              className="w-full p-2 mt-1 rounded bg-gray-100 dark:bg-gray-700"
+              className={inputClass("email")}
               value={form.email}
               onChange={(e) =>
                 setForm({ ...form, email: e.target.value })
               }
             />
+            {errorText("email")}
           </div>
         </div>
 
@@ -201,35 +234,44 @@ useEffect(() => {
         <div className="border-t pt-4 space-y-3">
           <h2 className="font-semibold">Change Password</h2>
 
-          <input
-            type="password"
-            placeholder="Old Password"
-            className="w-full p-2 rounded bg-gray-100 dark:bg-gray-700"
-            value={form.oldPassword}
-            onChange={(e) =>
-              setForm({ ...form, oldPassword: e.target.value })
-            }
-          />
+          <div>
+            <input
+              type="password"
+              placeholder="Old Password"
+              className={inputClass("oldPassword")}
+              value={form.oldPassword}
+              onChange={(e) =>
+                setForm({ ...form, oldPassword: e.target.value })
+              }
+            />
+            {errorText("oldPassword")}
+          </div>
 
-          <input
-            type="password"
-            placeholder="New Password"
-            className="w-full p-2 rounded bg-gray-100 dark:bg-gray-700"
-            value={form.newPassword}
-            onChange={(e) =>
-              setForm({ ...form, newPassword: e.target.value })
-            }
-          />
+          <div>
+            <input
+              type="password"
+              placeholder="New Password"
+              className={inputClass("newPassword")}
+              value={form.newPassword}
+              onChange={(e) =>
+                setForm({ ...form, newPassword: e.target.value })
+              }
+            />
+            {errorText("newPassword")}
+          </div>
 
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            className="w-full p-2 rounded bg-gray-100 dark:bg-gray-700"
-            value={form.confirmPassword}
-            onChange={(e) =>
-              setForm({ ...form, confirmPassword: e.target.value })
-            }
-          />
+          <div>
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              className={inputClass("confirmPassword")}
+              value={form.confirmPassword}
+              onChange={(e) =>
+                setForm({ ...form, confirmPassword: e.target.value })
+              }
+            />
+            {errorText("confirmPassword")}
+          </div>
         </div>
 
         {/* ACTION */}

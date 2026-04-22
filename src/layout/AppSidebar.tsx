@@ -23,6 +23,7 @@ import {
   FaChevronDown,
   FaEllipsisH,
 } from "react-icons/fa";
+import {BsCpuFill} from 'react-icons/bs'
 
 // ================= TYPES =================
 type Role = "admin" | "operator" | "supervisor" | "maintanace";
@@ -52,7 +53,7 @@ const navItems: NavItem[] = [
     name: "Calendar",
     icon: <FaCalendar />,
     path: "/calendar",
-    roles: ["admin", "supervisor"],
+    roles: ["admin"],
   },
   {
     name: "User Management",
@@ -71,6 +72,7 @@ const navItems: NavItem[] = [
       },
     ],
   },
+  
 ];
 
 const othersItems: NavItem[] = [
@@ -89,6 +91,17 @@ const othersItems: NavItem[] = [
     name: "Admin Only",
     icon: <FaShieldAlt />,
     path: "/admin",
+    roles: ["admin"],
+  },
+    {
+    name: "Modbus TCP",
+    icon: <BsCpuFill />,
+    path:'/controller/modbus-tcp'
+  },
+   {
+    name: "User Management",
+    icon: <FaUser />,
+    path: "/accountsettings",
     roles: ["admin"],
   },
 ];
@@ -209,7 +222,7 @@ useEffect(() => {
             <>
               <button
                 onClick={() => toggleSubmenu(index, type)}
-                className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 w-full"
+                className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white w-full"
               >
                 {nav.icon}
                 {(isExpanded || isHovered || isMobileOpen) && (
@@ -265,8 +278,8 @@ useEffect(() => {
                 className={`flex items-center gap-3 p-2 rounded-lg ${
                   isActive(nav.path)
                     ? "bg-blue-500 text-white"
-                    : "hover:bg-gray-100 dark:hover:bg-gray-800"
-                }`}
+                    : "hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white"
+                } `}
               >
                 {nav.icon}
                 {(isExpanded || isHovered || isMobileOpen) && nav.name}
@@ -338,7 +351,7 @@ useEffect(() => {
 
         <div>
           <div className="text-xs text-gray-400 mb-2 flex justify-center lg:justify-start">
-            {isExpanded || isHovered ? "Others" : <FaEllipsisH />}
+            {isExpanded || isHovered ? "Admin" : <FaEllipsisH />}
           </div>
           {renderMenu(filteredOthersItems, "others")}
         </div>

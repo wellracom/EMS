@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { wsSender } from "@/lib/ws/wsSender";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
@@ -69,7 +70,7 @@ export async function PUT(
         createdAt: true,
       },
     });
-
+ 
     return NextResponse.json({
       message: "Profile updated",
       data: updatedUser,
