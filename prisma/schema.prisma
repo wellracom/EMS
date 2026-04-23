@@ -38,3 +38,82 @@ enum Role {
   supervisor
   maintanace
 }
+
+/*
+  Ini model untuk konfigurasi
+  Modbus TCP 
+*/
+model mtcplist {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  ip         String
+  port       Int
+  unitId     Int
+  timeout    Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  mtcpaddrs  mtcpaddress[]
+}
+
+model mtcpaddress {
+  id           String   @id @default(cuid())
+  mtcpId       String
+  address      Int
+  functioncode MtcpFC
+  typedata     Mtcptypedata
+  canread      Boolean
+  canwrite     Boolean
+  nickname     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  mtcp         mtcplist @relation(fields: [mtcpId], references: [id], onDelete: Cascade)
+  tags         tag[]
+
+  @@unique([mtcpId, nickname])
+}
+
+enum Mtcptypedata {
+  INT16_SIGNED
+  INT16_UNSIGNED
+  INT32_BIG_ENDIAN
+  INT32_LITTLE_ENDIAN
+  FLOAT32_ABCD
+  FLOAT32_BADC
+  FLOAT32_CDAB
+  FLOAT32_DCBA
+  DOUBLE64
+  BOOLEAN
+  ASCII
+  BCD
+}
+
+enum MtcpFC {
+  FC1
+  FC2
+  FC3
+  FC4
+}
+
+/*
+  Ini model untuk konfigurasi TAG 
+*/
+model tag {
+  id              String   @id @default(cuid())
+  mtcpaddressId   String
+  name            String   @unique
+
+  offset          Decimal? @db.Decimal(10, 3)
+  gain            Decimal? @db.Decimal(10, 3)
+
+  lowlow          Decimal? @db.Decimal(10, 3)
+  low             Decimal? @db.Decimal(10, 3)
+  high            Decimal? @db.Decimal(10, 3)
+  highhigh        Decimal? @db.Decimal(10, 3)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  mtcpaddress     mtcpaddress @relation(fields: [mtcpaddressId], references: [id], onDelete: Cascade)
+}

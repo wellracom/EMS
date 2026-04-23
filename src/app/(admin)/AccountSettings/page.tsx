@@ -5,10 +5,9 @@ import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import UserModal from "@/components/AccountSettings/AccountSettingsModal";
 import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/apiclient/apiClient";
-import { useBrowserURLInfo } from "@/hooks/useBrowserURLInfo";
-import { useWS } from "@/hooks/useWS";
-import { useEnvParam } from "@/hooks/useEnv";
+import Tooltip from "@/components/ui/Tooltip/Tooltip";
 import WSStatusIndicator from "@/components/ui/WSConnection/WSStatusIndicator";
+import { useWSChannel } from "@/hooks/useWSChannel";
 // ================= TYPES =================
 type Role = "admin" | "operator" | "supervisor" | "maintanace";
 
@@ -37,16 +36,11 @@ export default function AccountManagement() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
   const { user } = useAuth();
-  const WS =useWS()
-  const info = useBrowserURLInfo();
-    const { env: wsPort } = useEnvParam("WS_PORT");
-   useEffect(() => {
-    if (!info?.hostname) return;
-
-    WS.connect(`ws://${info.hostname}:${wsPort}/accountsettings`);
-  }, [info, wsPort]);
+  const WS =useWSChannel('accountsettings')
+ 
 
 useEffect(() => {
+
   if (WS.data?.type === "reload") {
     fetchUsers();
   }
@@ -205,13 +199,16 @@ useEffect(() => {
 
                   {u.username !== user?.username && (
                     <td className="p-3 flex justify-center gap-3">
+                      <Tooltip label="Edit Account">
                       <button onClick={() => openModal(u)}>
                         <FaEdit className="text-green-500" />
                       </button>
-
+                      </Tooltip>
+  <Tooltip label="Delete Account">
                       <button onClick={() => handleDelete(u.id)}>
                         <FaTrash className="text-red-500" />
                       </button>
+                      </Tooltip>
                     </td>
                   )}
                 </tr>
