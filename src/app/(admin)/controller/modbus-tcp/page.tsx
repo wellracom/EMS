@@ -86,7 +86,7 @@ useEffect(() => {
 
         {/* HEADER */}
         <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold"><WSStatusIndicator status={WS.status}/>MTCP List</h1>
+        <h1 className="text-xl font-bold"><WSStatusIndicator status={WS.status} showLabel={false}/>MTCP List</h1>
 
         <button
           onClick={handleCreate}

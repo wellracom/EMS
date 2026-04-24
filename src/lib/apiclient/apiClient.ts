@@ -16,7 +16,6 @@ export function setApiUIHandlers(handlers: {
   if (handlers.toast) toastHandler = handlers.toast;
   if (handlers.confirm) confirmHandler = handlers.confirm;
 }
-
 export async function apiClient<T = any>(
   url: string,
   options: ApiOptions = {}
@@ -30,7 +29,7 @@ export async function apiClient<T = any>(
       if (!ok) return null;
     }
 
-    // ⏳ loading toast
+    // ⏳ loading
     if (toast?.loading) {
       toastHandler("info", toast.loading);
     }
@@ -44,27 +43,36 @@ export async function apiClient<T = any>(
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
+    /* =========================
+       ERROR HANDLING
+    ========================= */
     if (!res.ok) {
-      if (toast?.error) {
-        toastHandler("error", toast.error);
-      }
-      throw new Error(data?.message || "Request failed");
+      const message = data?.message || "Request failed";
+
+      // 🔥 tampilkan message backend
+      toastHandler("error", message);
+
+      throw new Error(message);
     }
 
-    // ✅ success toast
+    /* =========================
+       SUCCESS
+    ========================= */
     if (toast?.success) {
       toastHandler("success", toast.success);
     }
 
     return data;
-  } catch (err) {
-    if (toast?.error) {
-      toastHandler("error", toast.error);
+  } catch (err: any) {
+    console.error("API Error:", err);
+
+    // 🔥 fallback kalau error bukan dari backend
+    if (!err?.message) {
+      toastHandler("error", toast?.error || "Unexpected error");
     }
 
-    console.error("API Error:", err);
     return null;
   }
 }

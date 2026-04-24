@@ -11,19 +11,60 @@ export async function PUT(
   try {
     const body = await req.json();
  const { id } = await context.params; // ✅ WAJIB await
+      /* =========================
+       VALIDATION
+    ========================= */
+    if (!body.name || !body.ip) {
+      return NextResponse.json(
+        { message: "Name dan IP wajib diisi" },
+        { status: 400 }
+      );
+    }
+
+    const port = Number(body.port);
+    const unitId = Number(body.unitId);
+    const timeout = body.timeout ? Number(body.timeout) : 1000;
+
+    if (isNaN(port) || isNaN(unitId)) {
+      return NextResponse.json(
+        { message: "Port dan Unit ID harus number" },
+        { status: 400 }
+      );
+    }
+
+    /* =========================
+       UPDATE
+    ========================= */
     const data = await prisma.mtcplist.update({
-      where: { id: id },
+      where: { id },
       data: {
         name: body.name,
         ip: body.ip,
-        port: body.port,
-        unitId: body.unitId,
-        timeout: body.timeout,
+        port,
+        unitId,
+        timeout,
       },
     });
-  wsSender.reload('/mtcpsettings')
+
+    wsSender.reload("/mtcpsettings");
+
     return NextResponse.json(data);
   } catch (err: any) {
+    console.error("PUT ERROR:", err);
+
+    /* =========================
+       DUPLICATE HANDLER
+    ========================= */
+    if (err.code === "P2002") {
+      return NextResponse.json(
+        {
+          message:
+            "Kombinasi IP, Port, dan Unit ID sudah digunakan",
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { message: "Failed to update data" },
       { status: 500 }

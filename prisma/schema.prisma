@@ -43,7 +43,7 @@ enum Role {
   Ini model untuk konfigurasi
   Modbus TCP 
 */
-model mtcplist {
+model Mtcplist {
   id         String   @id @default(cuid())
   name       String   @unique
   ip         String
@@ -53,10 +53,11 @@ model mtcplist {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  mtcpaddrs  mtcpaddress[]
+  mtcpaddrs  Mtcpaddress[]
+   @@unique([ip, port, unitId]) 
 }
 
-model mtcpaddress {
+model Mtcpaddress {
   id           String   @id @default(cuid())
   mtcpId       String
   address      Int
@@ -64,14 +65,13 @@ model mtcpaddress {
   typedata     Mtcptypedata
   canread      Boolean
   canwrite     Boolean
-  nickname     String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  mtcp         mtcplist @relation(fields: [mtcpId], references: [id], onDelete: Cascade)
-  tags         tag[]
+  mtcp         Mtcplist @relation(fields: [mtcpId], references: [id], onDelete: Cascade)
+  tags         Tag[]
 
-  @@unique([mtcpId, nickname])
+ 
 }
 
 enum Mtcptypedata {
@@ -99,13 +99,14 @@ enum MtcpFC {
 /*
   Ini model untuk konfigurasi TAG 
 */
-model tag {
+model Tag {
   id              String   @id @default(cuid())
-  mtcpaddressId   String
+  mtcpaddressId   String?
   name            String   @unique
 
   offset          Decimal? @db.Decimal(10, 3)
   gain            Decimal? @db.Decimal(10, 3)
+  unit            String?
 
   lowlow          Decimal? @db.Decimal(10, 3)
   low             Decimal? @db.Decimal(10, 3)
@@ -115,5 +116,5 @@ model tag {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  mtcpaddress     mtcpaddress @relation(fields: [mtcpaddressId], references: [id], onDelete: Cascade)
+  mtcpaddress     Mtcpaddress? @relation(fields: [mtcpaddressId], references: [id], onDelete: Cascade)
 }
