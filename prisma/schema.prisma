@@ -118,3 +118,40 @@ model Tag {
 
   mtcpaddress     Mtcpaddress? @relation(fields: [mtcpaddressId], references: [id], onDelete: Cascade)
 }
+
+
+/*
+  Ini model untuk Costume Dashboard
+*/
+
+model Dashboard {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  itshare     Boolean @default(false)
+  userId      String?   // optional (kalau multi user)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  widgets     Widget[]
+}
+
+model Widget {
+  id          String   @id @default(cuid())
+  dashboardId String
+  type        String   // "chart", "status", "gauge", dll
+
+  // posisi layout (grafana style)
+  x           Int
+  y           Int
+  w           Int
+  h           Int
+
+  // config flexible (INI KUNCI 🔥)
+  config      Json
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  dashboard   Dashboard @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+}

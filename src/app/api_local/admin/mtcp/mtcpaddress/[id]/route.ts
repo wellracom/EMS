@@ -6,11 +6,12 @@ import { NextResponse } from "next/server";
 ========================= */
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+   context: { params: Promise<{ id: string }> }
 ) {
   try {
+      const { id } = await context.params; // ✅ WAJIB await
     const data = await prisma.mtcpaddress.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         tags: true,
       },
