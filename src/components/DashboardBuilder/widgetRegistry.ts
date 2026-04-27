@@ -4,6 +4,8 @@ import ChartModal from "./Widget/chart/modal";
 import StatusWidget from "./Widget/status/widget";
 import StatusModal from "./Widget//status/modal";
 
+import NumberWidget from "./Widget/number/widget"
+import NumberModal from "./Widget/number/modal"
 export const widgetRegistry: Record<
   string,
   {
@@ -18,5 +20,9 @@ export const widgetRegistry: Record<
   status: {
     view: StatusWidget,
     modal: StatusModal,
+  },
+   number: {
+    view: NumberWidget,
+    modal: NumberModal,
   },
 };

@@ -4,6 +4,7 @@ const ALLOWED_ENV = {
   WS_PORT: process.env.WS_PORT,
   API_URL: process.env.API_URL,
   WS_HOST: process.env.WS_HOST,
+  NodeRed_PORT: process.env.NodeRed_PORT,
 };
 
 export async function GET(req: Request) {

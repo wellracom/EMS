@@ -38,7 +38,7 @@ export default function AdminLayout({
 
         {/* ✅ CUKUP SATU PROVIDER */}
         <Providers>
-          <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
+          <div className=" mx-auto max-w-(--breakpoint-1xl) md:p-6">
             {children}
           </div>
         </Providers>
