@@ -3,6 +3,13 @@
 import ToolItem from "./ToolItem";
 import { widgetTools } from "@/lib/DashboardBuilder/widgetTools";
 
+import {
+  FiPlus,
+  FiFile,
+  FiTool,
+  FiCircle,
+} from "react-icons/fi";
+
 type SidebarProps = {
   pages?: any[];
   activePage?: string;
@@ -21,21 +28,23 @@ export default function Sidebar({
   return (
     <div className="w-full border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
 
-      {/* ===== TOP TOOLBAR WRAPPER ===== */}
-      <div className="flex items-center gap-4 px-3 py-2 overflow-x-auto">
+      <div className="flex items-center justify-between px-3 py-2 overflow-x-auto">
 
-        {/* ===== WIDGET TOOLS ===== */}
+        {/* ===== LEFT: TOOLS ===== */}
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400 mr-2">
+            <FiTool size={14} />
+            <span className="text-xs">Tools</span>
+          </div>
+
           {widgetTools.map((tool) => (
             <ToolItem key={tool.type} tool={tool} />
           ))}
         </div>
 
-        {/* DIVIDER */}
-        <div className="h-6 w-px bg-gray-300 dark:bg-gray-700" />
+        {/* ===== RIGHT: PAGES ===== */}
+        <div className="flex items-center gap-2 ml-auto">
 
-        {/* ===== PAGES ===== */}
-        <div className="flex items-center gap-2">
           {safePages.length === 0 ? (
             <span className="text-xs text-gray-400">No pages</span>
           ) : (
@@ -44,33 +53,42 @@ export default function Sidebar({
                 key={p.id}
                 onClick={() => setActivePage?.(p.id)}
                 className={`
-                  px-3 py-1 rounded text-sm whitespace-nowrap transition
+                  flex items-center gap-1 px-3 py-1 rounded-md text-sm whitespace-nowrap transition
+                  border
                   ${
                     p.id === activePage
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                      : "bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700"
                   }
                 `}
               >
+                {p.id === activePage ? (
+                  <FiCircle size={10} />
+                ) : (
+                  <FiFile size={14} />
+                )}
+
                 {p.name}
               </button>
             ))
           )}
-        </div>
 
-        {/* ADD PAGE */}
-        <button
-          onClick={() => addPage?.()}
-          className="
-            px-3 py-1 rounded text-sm
-            bg-gray-100 hover:bg-gray-200
-            dark:bg-gray-800 dark:hover:bg-gray-700
-            text-gray-800 dark:text-gray-200
-            transition
-          "
-        >
-          + Add Page
-        </button>
+          {/* ADD PAGE */}
+          <button
+            onClick={() => addPage?.()}
+            className="
+              flex items-center gap-1 px-3 py-1 rounded-md text-sm
+              bg-gray-100 hover:bg-gray-200
+              dark:bg-gray-800 dark:hover:bg-gray-700
+              text-gray-800 dark:text-gray-200
+              transition border border-gray-300 dark:border-gray-700
+            "
+          >
+            <FiPlus size={14} />
+            Add
+          </button>
+
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-
+import { wsSender } from "@/lib/ws/wsSender";
+import { FlowMtcpPush } from "@/lib/nodered/FlowPusher/mtcp/flowPusherMtcp";
 /* =========================
    GET BY ID
 ========================= */
@@ -129,7 +130,8 @@ export async function PUT(
 
       return address;
     });
-
+    wsSender.reload(`/mtcpaddresssettings-${id}`);
+    await FlowMtcpPush()
     return NextResponse.json(result);
   } catch (err: any) {
     console.error("PUT ERROR:", err);
@@ -155,7 +157,8 @@ export async function DELETE(
     await prisma.mtcpaddress.delete({
       where: { id: id },
     });
-
+await FlowMtcpPush()
+ wsSender.reload(`/mtcpaddresssettings-${id}`);
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(

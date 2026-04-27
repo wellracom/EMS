@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { wsSender } from "@/lib/ws/wsSender";
+import { FlowMtcpPush } from "@/lib/nodered/FlowPusher/mtcp/flowPusherMtcp";
 const prisma = new PrismaClient();
 
 // 🔹 UPDATE
@@ -45,7 +46,7 @@ export async function PUT(
         timeout,
       },
     });
-
+    await FlowMtcpPush()
     wsSender.reload("/mtcpsettings");
 
     return NextResponse.json(data);
@@ -82,6 +83,7 @@ export async function DELETE(
     await prisma.mtcplist.delete({
       where: { id: id },
     });
+    await FlowMtcpPush()
   wsSender.reload('/mtcpsettings')
     return NextResponse.json({ message: "Deleted" });
   } catch (err: any) {

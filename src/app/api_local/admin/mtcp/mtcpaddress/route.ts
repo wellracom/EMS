@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { wsSender } from "@/lib/ws/wsSender";
+import { FlowMtcpPush } from "@/lib/nodered/FlowPusher/mtcp/flowPusherMtcp";
 /* =========================
    GET ALL / FILTER
 ========================= */
@@ -71,7 +72,9 @@ export async function POST(req: Request) {
 
       return address;
     });
+      await FlowMtcpPush()
      wsSender.reload(`/mtcpaddresssettings-${body.mtcpId}`);
+     
     return NextResponse.json(result);
   } catch (err) {
     console.error(err);
