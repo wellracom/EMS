@@ -1,5 +1,7 @@
 // src/components/builder/WidgetRenderer.tsx
+import { Bs123 } from "react-icons/bs";
 export default function WidgetRenderer({ widget }: any) {
+  
   switch (widget.type) {
     case "chart":
       return <div>📊 Chart Widget</div>;

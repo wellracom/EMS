@@ -143,6 +143,7 @@ export default function Canvas({
       ref={setNodeRef}
       className="grid grid-cols-12 auto-rows-[80px] gap-2 p-3 h-full"
     >
+   
       {widgets.map((w: Widget) => {
         const Comp = widgetRegistry[w.type]?.view;
 
@@ -160,7 +161,7 @@ export default function Canvas({
         return (
           <div
             key={w.id}
-            className="relative bg-white dark:bg-gray-800 border rounded group overflow-hidden"
+            className="relative bg-transparent dark:bg-gray-800 border-1 rounded group overflow-hidden"
             style={{
               gridColumn: `${w.x + 1} / span ${w.w}`,
               gridRow: `${w.y + 1} / span ${w.h}`,

@@ -38,14 +38,14 @@ export default function TagDataTab({ value, onChange }: Props) {
   // LOAD FIELD BASED DEVICE
   // =========================
   useEffect(() => {
-    if (!value?.deviceId) return;
-    if (value?.deviceId==='tag'){
+    if (!value?.type) return;
+    if (value?.type==='tag'){
         LoadTags()
     }
     
 
     //loadFields();
-  }, [value?.deviceId]);
+  }, [value?.type]);
 
   return (
     <div className="space-y-3">

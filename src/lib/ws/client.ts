@@ -17,8 +17,31 @@ class WSClient {
 
   private shouldReconnect = true;
   private reconnectTimer: any = null;
+  private isReconnecting = false;
 
+  private subscribers = 0; // ✅ penting
+
+  // =========================
+  // CONNECT
+  // =========================
   connect(endpoint: string) {
+    this.subscribers++;
+
+    // ✅ sudah connect → jangan buat baru
+    if (
+      this.socket &&
+      this.socket.readyState === WebSocket.OPEN &&
+      this.endpoint === endpoint
+    ) {
+      return;
+    }
+
+    // ✅ kalau beda endpoint → reset
+    if (this.socket) {
+      this.socket.close();
+      this.socket = null;
+    }
+
     this.endpoint = endpoint;
     this.shouldReconnect = true;
 
@@ -28,7 +51,12 @@ class WSClient {
     this.createSocket();
   }
 
+  // =========================
+  // CREATE SOCKET
+  // =========================
   private createSocket() {
+    if (this.socket) return; // ✅ cegah double
+
     try {
       this.socket = new WebSocket(this.endpoint);
 
@@ -47,30 +75,38 @@ class WSClient {
       };
 
       this.socket.onclose = () => {
+        this.socket = null;
         this.emitStatus("disconnected");
         this.tryReconnect();
       };
 
       this.socket.onerror = () => {
+        this.socket = null;
         this.emitStatus("error");
         this.tryReconnect();
       };
     } catch {
+      this.socket = null;
       this.emitStatus("error");
       this.tryReconnect();
     }
   }
 
+  // =========================
+  // RECONNECT
+  // =========================
   private tryReconnect() {
-    if (!this.shouldReconnect) return;
+    if (!this.shouldReconnect || this.isReconnecting) return;
+
+    this.isReconnecting = true;
 
     this.clearReconnect();
 
-    // langsung reconnect (tanpa delay/backoff)
     this.reconnectTimer = setTimeout(() => {
       this.emitStatus("connecting");
       this.createSocket();
-    }, 1000); // kecil saja biar tidak spam loop terlalu cepat
+      this.isReconnecting = false;
+    }, 1000);
   }
 
   private clearReconnect() {
@@ -80,7 +116,15 @@ class WSClient {
     }
   }
 
+  // =========================
+  // DISCONNECT
+  // =========================
   disconnect() {
+    this.subscribers--;
+
+    // ✅ masih ada yang pakai → jangan close
+    if (this.subscribers > 0) return;
+
     this.shouldReconnect = false;
     this.clearReconnect();
 
@@ -92,18 +136,24 @@ class WSClient {
     this.emitStatus("disconnected");
   }
 
+  // =========================
+  // SEND
+  // =========================
   send(data: any) {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
 
     this.socket.send(typeof data === "string" ? data : JSON.stringify(data));
   }
 
+  // =========================
+  // LISTENER (NO DUPLICATE)
+  // =========================
   onMessage(cb: MessageHandler) {
-    this.onMessageHandlers.push(cb);
+    this.onMessageHandlers = [cb]; // ✅ hanya 1 handler global
   }
 
   onStatus(cb: StatusHandler) {
-    this.onStatusHandlers.push(cb);
+    this.onStatusHandlers = [cb]; // ✅ hanya 1 handler global
   }
 
   private emitStatus(status: WSStatus) {

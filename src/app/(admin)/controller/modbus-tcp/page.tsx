@@ -6,7 +6,7 @@ import MtcpModal from "@/components/ui/modal/controller/mtcpsettings/MtcpModal";
 import { apiClient } from "@/lib/apiclient/apiClient";
 import Tooltip from "@/components/ui/Tooltip/Tooltip";
 import WSStatusIndicator from "@/components/ui/WSConnection/WSStatusIndicator";
-import { useWSChannel } from "@/hooks/useWSChannel";
+import { useWS_V1Server } from "@/hooks/WS/useWSserver";
 import Link from "next/link";
 type Mtcplist = {
   id: string;
@@ -30,7 +30,7 @@ export default function MtcpListPage() {
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<any>(emptyForm);
- const WS =useWSChannel('mtcpsettings')
+ const WS =useWS_V1Server('mtcpsettings')
  
 
 useEffect(() => {

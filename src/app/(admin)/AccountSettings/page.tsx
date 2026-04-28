@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/apiclient/apiClient";
 import Tooltip from "@/components/ui/Tooltip/Tooltip";
 import WSStatusIndicator from "@/components/ui/WSConnection/WSStatusIndicator";
-import { useWSChannel } from "@/hooks/useWSChannel";
+import { useWS_V1Server } from "@/hooks/WS/useWSserver";
 // ================= TYPES =================
 type Role = "admin" | "operator" | "supervisor" | "maintanace";
 
@@ -36,7 +36,7 @@ export default function AccountManagement() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
   const { user } = useAuth();
-  const WS =useWSChannel('accountsettings')
+  const WS =useWS_V1Server('accountsettings')
  
 
 useEffect(() => {

@@ -8,7 +8,7 @@ import Tooltip from "@/components/ui/Tooltip/Tooltip";
 import MtcpAddressModal from "@/components/ui/modal/controller/mtcpsettings/MtcpaddressModal";
 import MtcpListCard from "@/components/ui/card/controller/mtcpsettings/mtcpdevicescard";
 import WSStatusIndicator from "@/components/ui/WSConnection/WSStatusIndicator";
-import { useWSChannel } from "@/hooks/useWSChannel";
+import { useWS_V1Server } from "@/hooks/WS/useWSserver";
 /* =========================
    TYPE
 ========================= */
@@ -63,7 +63,7 @@ export default function MtcpAddressPage() {
   const [form, setForm] = useState<any>({});
 
   const [loading, setLoading] = useState(true);
-  const WS =useWSChannel(`mtcpaddresssettings-${id?.toString()}`)
+  const WS =useWS_V1Server(`mtcpaddresssettings-${id?.toString()}`)
   /* =========================
      FETCH ADDRESS
   ========================= */

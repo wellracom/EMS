@@ -6,6 +6,9 @@ import StatusModal from "./Widget//status/modal";
 
 import NumberWidget from "./Widget/number/widget"
 import NumberModal from "./Widget/number/modal"
+
+import GaugeWidget from "./Widget/gauge/widget"
+import GaugeModal from "./Widget/gauge/modal"
 export const widgetRegistry: Record<
   string,
   {
@@ -24,5 +27,9 @@ export const widgetRegistry: Record<
    number: {
     view: NumberWidget,
     modal: NumberModal,
+  },
+   gauge: {
+    view: GaugeWidget,
+    modal: GaugeModal,
   },
 };

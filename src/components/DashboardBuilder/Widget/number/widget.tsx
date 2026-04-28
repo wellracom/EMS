@@ -1,52 +1,72 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useWSChannelNodered } from "@/hooks/useWSChannelnodered";
+import { useWS_V1 } from "@/hooks/WS/useWSNodered";
+
 export default function ChartWidget({ widget }: any) {
   const ref = useRef<HTMLDivElement>(null);
 
   const [fontSize, setFontSize] = useState(20);
-  const [displayValue, setDisplayValue] = useState(0);
 
-  const [value,setValue] =  useState(0)
- const WS =useWSChannelNodered('tags')
+  const [displayValue, setDisplayValue] = useState(0); // animasi
+  const [numericValue, setNumericValue] = useState(0); // angka asli
+  const [rawValue, setRawValue] = useState<string>(""); // string asli
+
+  const WS = useWS_V1("tags");
+
   // =========================
-  // 🔥 AUTO SCALE FONT
+  // HEX → RGBA
+  // =========================
+  const hexToRgba = (hex: string, opacity: number) => {
+    if (!hex) return `rgba(34,197,94,${opacity})`;
+
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
+
+  // =========================
+  // AUTO SCALE FONT
   // =========================
   useEffect(() => {
     if (!ref.current) return;
 
     const observer = new ResizeObserver((entries) => {
       const { width, height } = entries[0].contentRect;
-
-      // 🔥 lebih stabil (tidak terlalu besar)
-      const size = Math.min(width, height) * 0.4;
-
-      setFontSize(size);
+      setFontSize(Math.min(width, height) * 0.4);
     });
 
     observer.observe(ref.current);
-
     return () => observer.disconnect();
   }, []);
 
- useEffect(() => {
-  if (!Array.isArray(WS.data)) return;
+  // =========================
+  // GET VALUE FROM WS
+  // =========================
+  useEffect(() => {
+    if (!Array.isArray(WS.data)) return;
 
-  const value_WS =
-    WS.data.find(
-      (item: any) => item.id === widget.config?.data?.field
-    )?.value ?? 0;
-    console.log(value_WS)
-  setValue(Number(value_WS));
-}, [WS.data, widget.config?.data?.id]);
+    const val =
+      WS.data.find(
+        (item: any) => item.id === widget.config?.data?.field
+      )?.value ?? "-";
+
+    setRawValue(String(val));
+
+    const num = Number(val);
+    setNumericValue(isNaN(num) ? 0 : num);
+  }, [WS.data, widget.config?.data?.field]);
 
   // =========================
-  // 🔥 SMOOTH ANIMATION VALUE
+  // SMOOTH ANIMATION (ONLY NUMBER)
   // =========================
   useEffect(() => {
     let start = displayValue;
-    let end = value;
+    let end = numericValue;
+
+    if (isNaN(end)) return;
 
     const diff = end - start;
     const step = diff / 10;
@@ -63,42 +83,85 @@ export default function ChartWidget({ widget }: any) {
     }, 30);
 
     return () => clearInterval(interval);
-  }, [value]);
+  }, [numericValue]);
 
   // =========================
-  // 🔥 COLOR (support future threshold)
+  // VALUE COLOR
   // =========================
   const getColor = () => {
     const thresholds = widget.config?.threshold || [];
 
     for (let t of thresholds) {
-      if (value > t.gt) return t.color;
+      if (numericValue > t.gt) return t.color;
     }
 
-    return widget.config?.ui?.color || widget.config?.color || "#22c55e";
+    return (
+      widget.config?.ui?.color ||
+      widget.config?.color ||
+      "#22c55e"
+    );
   };
+
+  // =========================
+  // BG COLOR + OPACITY
+  // =========================
+  const getColo_bg = () => {
+    const thresholds = widget.config?.threshold || [];
+
+    for (let t of thresholds) {
+      if (numericValue > t.gt) {
+        return hexToRgba(
+          t.bg_color || "#22c55e",
+          t.bg_opacity ?? 1
+        );
+      }
+    }
+
+    const color =
+      widget.config?.ui?.bg_color ||
+      widget.config?.bg_color ||
+      "#22c55e";
+
+    const opacity =
+      widget.config?.ui?.bg_opacity ?? 1;
+
+    return hexToRgba(color, opacity);
+  };
+
+  // =========================
+  // DISPLAY LOGIC
+  // =========================
+  const isNumber = !isNaN(Number(rawValue));
 
   return (
     <div
       ref={ref}
-      className="w-full h-full flex flex-col items-center justify-center p-2"
+      style={{
+        backgroundColor: getColo_bg(),
+      }}
+      className="w-full h-full flex flex-col p-2 rounded"
     >
-      {/* VALUE */}
-      <div
-        style={{
-          fontSize,
-          color: getColor(),
-        }}
-        className="font-bold leading-none text-center"
-      >
-        {Math.round(displayValue)}
-      </div>
-
-      {/* LABEL */}
-      <div className="text-xs text-gray-500 mt-1 text-center">
+   
+      {/* HEADER */}
+      <div className="text-xl text-gray-700 text-center mb-1 uppercase tracking-wide">
         {widget.config?.ui?.label ||
           widget.config?.label ||
-          "Value"}
+          ""}
+      </div>
+
+      {/* VALUE */}
+      <div className="flex-1 flex items-center justify-center">
+        <div
+          style={{
+            fontSize,
+            color: getColor(),
+          }}
+          className="font-bold leading-none"
+        >
+          {isNumber
+            ? Math.round(displayValue) // animasi angka
+            : rawValue}               {/* string langsung */}
+        </div>
       </div>
     </div>
   );
