@@ -15,7 +15,13 @@ type WSClientInstance = {
   subscribers: number;
   status: WSStatus;
   isConnecting: boolean;
+
+  retryCount: number;
+  shouldReconnect: boolean;
 };
+
+const RECONNECT_DELAY = 2000;
+const MAX_RETRY = 10;
 
 class WSManager {
   private clients: Record<string, WSClientInstance> = {};
@@ -26,7 +32,6 @@ class WSManager {
   connect(endpoint: string, cb: MessageHandler) {
     if (!endpoint) return;
 
-    // buat instance kalau belum ada
     if (!this.clients[endpoint]) {
       this.clients[endpoint] = {
         socket: null,
@@ -35,6 +40,9 @@ class WSManager {
         subscribers: 0,
         status: "idle",
         isConnecting: false,
+
+        retryCount: 0,
+        shouldReconnect: true,
       };
     }
 
@@ -42,8 +50,8 @@ class WSManager {
 
     client.subscribers++;
     client.handlers.add(cb);
+    client.shouldReconnect = true;
 
-    // kalau sudah connect → skip
     if (
       client.socket &&
       client.socket.readyState === WebSocket.OPEN
@@ -51,11 +59,20 @@ class WSManager {
       return;
     }
 
-    // kalau sedang connecting → skip
     if (client.isConnecting) return;
 
     client.isConnecting = true;
     this.emitStatus(endpoint, "connecting");
+
+    this.forceConnect(endpoint);
+  }
+
+  // =========================
+  // FORCE CONNECT
+  // =========================
+  private forceConnect(endpoint: string) {
+    const client = this.clients[endpoint];
+    if (!client) return;
 
     try {
       const ws = new WebSocket(endpoint);
@@ -63,6 +80,8 @@ class WSManager {
 
       ws.onopen = () => {
         client.isConnecting = false;
+        client.retryCount = 0;
+
         this.emitStatus(endpoint, "connected");
         console.log("[WS CONNECTED]", endpoint);
       };
@@ -79,27 +98,63 @@ class WSManager {
 
       ws.onclose = () => {
         console.log("[WS CLOSED]", endpoint);
+
         client.socket = null;
         client.isConnecting = false;
         this.emitStatus(endpoint, "disconnected");
 
-        // auto cleanup kalau tidak ada subscriber
-        if (client.subscribers <= 0) {
+        if (client.subscribers > 0 && client.shouldReconnect) {
+          this.reconnect(endpoint);
+        } else {
           delete this.clients[endpoint];
         }
       };
 
       ws.onerror = () => {
         console.log("[WS ERROR]", endpoint);
+
         client.socket = null;
         client.isConnecting = false;
         this.emitStatus(endpoint, "error");
+
+        this.reconnect(endpoint);
       };
     } catch (err) {
       console.log("[WS FAIL]", endpoint, err);
+
       client.isConnecting = false;
       this.emitStatus(endpoint, "error");
+
+      this.reconnect(endpoint);
     }
+  }
+
+  // =========================
+  // RECONNECT
+  // =========================
+  private reconnect(endpoint: string) {
+    const client = this.clients[endpoint];
+    if (!client) return;
+    if (!client.shouldReconnect) return;
+
+    if (client.retryCount >= MAX_RETRY) {
+      this.emitStatus(endpoint, "error");
+      return;
+    }
+
+    client.retryCount++;
+
+    this.emitStatus(endpoint, "connecting");
+
+    const delay = RECONNECT_DELAY * client.retryCount;
+
+    setTimeout(() => {
+      console.log(
+        `[WS RECONNECT] attempt ${client.retryCount}`,
+        endpoint
+      );
+      this.forceConnect(endpoint);
+    }, delay);
   }
 
   // =========================
@@ -112,25 +167,24 @@ class WSManager {
     client.subscribers--;
     client.handlers.delete(cb);
 
-    // masih ada subscriber → jangan close
     if (client.subscribers > 0) return;
 
     console.log("[WS DESTROY]", endpoint);
 
+    client.shouldReconnect = false;
     client.socket?.close();
+
     delete this.clients[endpoint];
   }
 
   // =========================
-  // STATUS SUBSCRIBE
+  // STATUS
   // =========================
   subscribeStatus(endpoint: string, cb: StatusHandler) {
     const client = this.clients[endpoint];
     if (!client) return;
 
     client.statusHandlers.add(cb);
-
-    // kirim status terakhir langsung
     cb(client.status);
   }
 
@@ -154,7 +208,7 @@ class WSManager {
   // =========================
   send(endpoint: string, data: any) {
     const client = this.clients[endpoint];
-    if (!client || !client.socket) return;
+    if (!client?.socket) return;
 
     if (client.socket.readyState !== WebSocket.OPEN) return;
 

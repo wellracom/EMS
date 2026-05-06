@@ -54,6 +54,8 @@ model Mtcplist {
   updatedAt  DateTime @updatedAt
 
   mtcpaddrs  Mtcpaddress[]
+
+  MtcpLogger LoggerDeviceslist[]
    @@unique([ip, port, unitId]) 
 }
 
@@ -117,6 +119,9 @@ model Tag {
   updatedAt       DateTime @updatedAt
 
   mtcpaddress     Mtcpaddress? @relation(fields: [mtcpaddressId], references: [id], onDelete: Cascade)
+
+  Taglogger      LoggerTagslist[]
+
 }
 
 
@@ -155,3 +160,43 @@ model Widget {
 
   dashboard   Dashboard @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
 }
+
+
+
+/*
+  Ini Untuk logger Settings
+*/
+
+model Logger{
+   id          String   @id @default(cuid())
+   name        String @unique
+   interval    Int
+   devices     Boolean
+   tags        Boolean
+   createdAt   DateTime @default(now())
+   updatedAt   DateTime @updatedAt
+   LoggerTagslist LoggerTagslist[]
+   LoggerDevices LoggerDeviceslist[]
+}
+
+model LoggerTagslist{
+   id          String   @id @default(cuid())
+   id_Logger   String
+   id_tags     String
+   createdAt   DateTime @default(now())
+   updatedAt   DateTime @updatedAt
+
+   loggeridtag  Logger @relation(fields:[id_Logger],references:[id],onDelete:Cascade)
+   loggerTags Tag @relation(fields:[id_tags],references:[id],onDelete:Cascade)
+}
+
+model LoggerDeviceslist{
+   id          String   @id @default(cuid())
+    id_Logger   String
+   id_Mtcp     String?
+   createdAt   DateTime @default(now())
+   updatedAt   DateTime @updatedAt
+    loggeriddevives  Logger @relation(fields:[id_Logger],references:[id],onDelete:Cascade)
+   LoggerMtcp   Mtcplist? @relation(fields:[id_Mtcp],references:[id],onDelete:Cascade)
+}
+

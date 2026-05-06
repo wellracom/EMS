@@ -7,12 +7,12 @@ import Button from "@/components/ui/button/Button";
 import { EyeCloseIcon, EyeIcon } from "@/icons";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { mutate } from "swr";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
-
+const { mutate } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,11 +42,13 @@ const handleLogin = async (e: React.FormEvent) => {
     }
 
     // 🔥 refresh auth state
-   await mutate("/api_local/auth/me");
+    const updated = await mutate();
 
-setTimeout(() => {
-  router.push("/");
-}, 100);
+  if (updated?.user) {
+    router.push("/");
+  } else {
+    throw new Error("Auth check failed");
+  }
 
   } catch (err: any) {
     setError(err.message);

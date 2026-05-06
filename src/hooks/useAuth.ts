@@ -9,6 +9,7 @@ const fetcher = async (url: string) => {
     credentials: "include",
   });
 
+  if (!res.ok) return null; // 🔥 penting
   return res.json();
 };
 
@@ -25,24 +26,25 @@ export function useAuth(redirectIfUnauthenticated = false) {
     }
   );
 
-  const user = data?.user;
+  const user = data?.user ?? null;
 
   useEffect(() => {
     if (!redirectIfUnauthenticated) return;
     if (redirected.current) return;
     if (isLoading) return;
-    if (!data) return;
-    if (user) return;
 
-    redirected.current = true;
-    router.replace("/signin");
-  }, [user, isLoading, data]);
+    // 🔥 langsung cek user saja
+    if (!user) {
+      redirected.current = true;
+      router.replace("/signin");
+    }
+  }, [user, isLoading]);
 
   return {
     user,
     isLoading,
     isAuthenticated: !!user,
-    isReady: !isLoading && data !== undefined,
+    isReady: !isLoading,
     mutate,
   };
 }

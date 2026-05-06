@@ -1,0 +1,68 @@
+import { NodeRedEnv, NodeRedFlow, NodeRedNode } from "../../type/nodeflow"
+import path from "path"
+import { readFile } from "fs/promises"
+
+type LoggerConfig = {
+  interval?: number
+}
+
+// helper untuk env (biar tidak ulang-ulang)
+const createEnv = (
+  name: string,
+  value: string | number,
+  type: "str" | "num" = "str"
+): NodeRedEnv => ({
+  name,
+  value,
+  type,
+})
+
+// helper untuk baca config
+async function loadConfig(): Promise<LoggerConfig> {
+  try {
+    const filePath = path.join(process.cwd(), "config", "logger.json")
+    const file = await readFile(filePath, "utf-8")
+    return JSON.parse(file)
+  } catch {
+    // fallback default
+    return { interval: 5 }
+  }
+}
+
+export async function generateLoggerDefault(): Promise<NodeRedFlow> {
+  const FlowId = process.env.NodeRed_LoggerDefaullt_Flow || "flow"
+  const subflow = process.env.NodeRed_LoggerDefault_SUBFLOW || "subflow"
+
+  const config = await loadConfig()
+console.log(config)
+  // env dari process.env
+  const envList: NodeRedEnv[] = [
+    createEnv("DB_organisasion", process.env.INFLUX_ORG || "INFLUX_ORG"),
+    createEnv("DB_bucket", process.env.INFLUX_BUCKET || "INFLUX_BUCKET"),
+    createEnv("DB_token", process.env.INFLUX_TOKEN || "INFLUX_TOKEN"),
+    createEnv("DB_URL", process.env.INFLUX_URL || "INFLUX_URL"),
+    createEnv("interval", config.interval ?? 5, "num"),
+  ]
+console.log(envList)
+  const node: NodeRedNode = {
+    id: "defaultLoggerInterval",
+    type: `subflow:${subflow}`,
+    name: "DefaultLogger",
+    env: envList,
+    x:300,
+    y:60,
+    wires:[],
+    subflow:`${subflow}`
+  }
+
+  const flow: NodeRedFlow = {
+    id: FlowId,
+    label: "Logger DB Default",
+    disabled: false,
+    info: "logger Default Save Interval",
+    env: [],
+    nodes: [node],
+  }
+
+  return flow
+}

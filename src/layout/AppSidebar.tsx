@@ -23,7 +23,7 @@ import {
   FaChevronDown,
   FaEllipsisH,
 } from "react-icons/fa";
-import {BsCpuFill} from 'react-icons/bs'
+import {BsCpuFill,BsStackOverflow} from 'react-icons/bs'
 
 // ================= TYPES =================
 type Role = "admin" | "operator" | "supervisor" | "maintanace";
@@ -98,6 +98,17 @@ const othersItems: NavItem[] = [
     icon: <BsCpuFill />,
     path:'/controller/modbus-tcp'
   },
+    {
+    name: "System Logger Interval",
+    icon: <BsStackOverflow />,
+    path:'/admin/LoggerDefault'
+  },
+   {
+    name: "Costume Logger Settings",
+    icon: <BsStackOverflow />,
+    path:'/admin/LoggerSettings'
+  },
+  
    {
     name: "User Management",
     icon: <FaUser />,
