@@ -1,6 +1,7 @@
 import React from "react";
 import { FaNetworkWired } from "react-icons/fa";
 
+import  StatusMTCP  from "@/components/ui/controller/mtcp/statusconnection";
 export type MtcpList = {
   id: string;
   name: string;
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export default function MtcpListCard({ data }: Props) {
+ 
   console.log(data)
   return (
     <div className="w-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
@@ -31,15 +33,7 @@ export default function MtcpListCard({ data }: Props) {
           </h3>
         </div>
 
-        <span
-          className={`px-3 py-1 text-xs rounded-full font-medium ${
-            data.isActive
-              ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-              : "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
-          }`}
-        >
-          {data.isActive ? "Active" : "Inactive"}
-        </span>
+        <StatusMTCP iddevices={data.id}/>
       </div>
 
       {/* Content */}

@@ -1,69 +1,73 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
-import { apiClient } from "@/lib/apiclient/apiClient";
-import Tooltip from "@/components/ui/Tooltip/Tooltip";
-import MtcpAddressModal from "@/components/ui/modal/controller/mtcpsettings/MtcpaddressModal";
-import MtcpListCard from "@/components/ui/card/controller/mtcpsettings/mtcpdevicescard";
-import WSStatusIndicator from "@/components/ui/WSConnection/WSStatusIndicator";
-import { useWS_V1Server } from "@/hooks/WS/useWSserver";
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa'
+import { apiClient } from '@/lib/apiclient/apiClient'
+import Tooltip from '@/components/ui/Tooltip/Tooltip'
+import MtcpAddressModal from '@/components/ui/modal/controller/mtcpsettings/MtcpaddressModal'
+import MtcpListCard from '@/components/ui/card/controller/mtcpsettings/mtcpdevicescard'
+import WSStatusIndicator from '@/components/ui/WSConnection/WSStatusIndicator'
+import { useWS_V1 } from '@/hooks/WS/useWSNodered'
+import { useWS_V1Server } from '@/hooks/WS/useWSserver'
 /* =========================
    TYPE
 ========================= */
 
 type Tag = {
-  id: string;
-  name: string;
-  offset?: number;
-  gain?: number;
-  unit?: string;
-  lowlow?: number;
-  low?: number;
-  high?: number;
-  highhigh?: number;
-};
+  id: string
+  name: string
+  offset?: number
+  gain?: number
+  unit?: string
+  boolfalsestate: string
+  booltruestate: string
+  lowlow?: number
+  low?: number
+  high?: number
+  highhigh?: number
+}
 
 type MtcpAddress = {
-  id: string;
-  address: number;
-  functioncode: string;
-  typedata: string;
-  canread: boolean;
-  canwrite: boolean;
-  tags?: Tag[];
-};
+  id: string
+  address: number
+  functioncode: string
+  typedata: string
+  canread: boolean
+  canwrite: boolean
+  tags?: Tag[]
+}
 
 type MtcpDevice = {
-  id: string;
-  name: string;
-  ip: string;
-  port: number;
-  unitId: number;
-  timeout: number;
-  isActive?: boolean;
+  id: string
+  name: string
+  ip: string
+  port: number
+  unitId: number
+  timeout: number
+  isActive?: boolean
   _count?: {
-    mtcpaddrs: number;
-  };
-};
+    mtcpaddrs: number
+  }
+}
 
 /* =========================
    COMPONENT
 ========================= */
 
 export default function MtcpAddressPage() {
-  const { id } = useParams();
+  const { id } = useParams()
 
-  const [data, setData] = useState<MtcpAddress[]>([]);
-  const [mtcpDevices, setMtcpDevices] = useState<MtcpDevice | null>(null);
+  const [data, setData] = useState<MtcpAddress[]>([])
+  const [mtcpDevices, setMtcpDevices] = useState<MtcpDevice | null>(null)
 
-  const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState<any>({});
+  const [open, setOpen] = useState(false)
+  const [editId, setEditId] = useState<string | null>(null)
+  const [form, setForm] = useState<any>({})
 
-  const [loading, setLoading] = useState(true);
-  const WS =useWS_V1Server(`mtcpaddresssettings-${id?.toString()}`)
+  const [loading, setLoading] = useState(true)
+  const WS = useWS_V1Server(`mtcpaddresssettings-${id?.toString()}`)
+  const WS_nodered = useWS_V1('tag')
   /* =========================
      FETCH ADDRESS
   ========================= */
@@ -71,63 +75,59 @@ export default function MtcpAddressPage() {
     try {
       const res = await apiClient<MtcpAddress[]>(
         `/api_local/admin/mtcp/mtcpaddress?mtcpId=${id}`
-      );
+      )
 
-      if (res) setData(res);
-     
+      if (res) setData(res)
     } catch (err) {
-      console.error("Fetch address error:", err);
+      console.error('Fetch address error:', err)
     }
-  };
+  }
 
   useEffect(() => {
-  
-    if (WS.data?.type === "reload") {
-      fetchData();
+    if (WS.data?.type === 'reload') {
+      fetchData()
     }
-  }, [WS.data]);
+  }, [WS.data])
   /* =========================
      FETCH DEVICE
   ========================= */
   const fetchDataDevices = async (id: string) => {
     try {
-      setLoading(true);
+      setLoading(true)
 
-      const res = await apiClient(
-        `/api_local/admin/mtcp?id=${id}`
-      );
+      const res = await apiClient(`/api_local/admin/mtcp?id=${id}`)
 
-      if (!res) return;
+      if (!res) return
       console.log(res)
-      setMtcpDevices(res);
+      setMtcpDevices(res)
     } catch (err) {
-      console.error("Fetch device error:", err);
+      console.error('Fetch device error:', err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   /* =========================
      INIT
   ========================= */
   useEffect(() => {
-    if (!id) return;
+    if (!id) return
 
-    fetchData();
-    fetchDataDevices(id.toString());
-  }, [id]);
+    fetchData()
+    fetchDataDevices(id.toString())
+  }, [id])
 
   /* =========================
      ACTIONS
   ========================= */
   const handleCreate = () => {
-    setForm({ mtcpId: id });
-    setEditId(null);
-    setOpen(true);
-  };
+    setForm({ mtcpId: id })
+    setEditId(null)
+    setOpen(true)
+  }
 
   const handleEdit = (item: MtcpAddress) => {
-    const tag = item.tags?.[0];
+    const tag = item.tags?.[0]
 
     setForm({
       ...item,
@@ -135,48 +135,52 @@ export default function MtcpAddressPage() {
       offset: tag?.offset,
       gain: tag?.gain,
       unit: tag?.unit,
+      boolfalsestate: tag?.boolfalsestate,
+      booltruestate: tag?.booltruestate,
       lowlow: tag?.lowlow,
       low: tag?.low,
       high: tag?.high,
       highhigh: tag?.highhigh,
-    });
+    })
 
-    setEditId(item.id);
-    setOpen(true);
-  };
+    setEditId(item.id)
+    setOpen(true)
+  }
 
   const handleDelete = async (id: string) => {
     await apiClient(`/api_local/admin/mtcp/mtcpaddress/${id}`, {
-      method: "DELETE",
-      confirm: { message: "Delete this address?" },
+      method: 'DELETE',
+      confirm: { message: 'Delete this address?' },
       toast: {
-        loading: "Deleting...",
-        success: "Deleted",
-        error: "Failed",
+        loading: 'Deleting...',
+        success: 'Deleted',
+        error: 'Failed',
       },
-    });
+    })
 
-    fetchData();
-  };
+    fetchData()
+  }
 
   /* =========================
      RENDER
   ========================= */
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-800 dark:text-white">
-      <div className="w-full mx-auto p-4">
-
+    <div className="min-h-screen bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-white">
+      <div className="mx-auto w-full p-4">
         {/* ================= HEADER ================= */}
-        <div className="flex flex-col gap-4 mb-6">
-
-          <div className="flex justify-between items-center">
-            <h1 className="text-xl font-bold">
-             <WSStatusIndicator status={WS.status} showLabel={false}/> MTCP Address : {mtcpDevices?.name ?? ""}
-            </h1>
+        <div className="mb-6 flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <WSStatusIndicator status={WS.status} showLabel={false} />
+              <h1 className="text-xl font-bold">
+                {' '}
+                MTCP Address : {mtcpDevices?.name ?? ''}
+              </h1>
+            </div>
 
             <button
               onClick={handleCreate}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
               <FaPlus /> Add Address
             </button>
@@ -190,8 +194,8 @@ export default function MtcpAddressPage() {
         </div>
 
         {/* ================= TABLE ================= */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-auto">
-          <table className="w-full text-sm text-left">
+        <div className="overflow-auto rounded-xl bg-white shadow dark:bg-gray-800">
+          <table className="w-full text-left text-sm">
             <thead className="bg-gray-200 dark:bg-gray-700">
               <tr>
                 <th className="p-2">Tag</th>
@@ -203,30 +207,29 @@ export default function MtcpAddressPage() {
                 <th>Unit</th>
                 <th>Alarm</th>
                 <th>Action</th>
+                <th>Value</th>
               </tr>
             </thead>
 
             <tbody>
               {data.map((item) => {
-                const tag = item.tags?.[0];
+                const tag = item.tags?.[0]
 
                 const isAlarm =
                   tag?.lowlow != null ||
                   tag?.low != null ||
                   tag?.high != null ||
-                  tag?.highhigh != null;
+                  tag?.highhigh != null
 
                 return (
                   <tr
                     key={item.id}
                     className={`border-b dark:border-gray-700 ${
-                      isAlarm ? "bg-red-50 dark:bg-red-900/20" : ""
+                      isAlarm ? 'bg-red-50 dark:bg-red-900/20' : ''
                     }`}
                   >
                     {/* TAG */}
-                    <td className="p-2 font-medium">
-                      {tag?.name ?? "-"}
-                    </td>
+                    <td className="p-2 font-medium">{tag?.name ?? '-'}</td>
 
                     {/* ADDRESS */}
                     <td>{item.address}</td>
@@ -240,11 +243,19 @@ export default function MtcpAddressPage() {
                     {/* READ WRITE */}
                     <td>
                       <div className="flex gap-1">
-                        <span className={item.canread ? "text-green-500" : "text-gray-400"}>
+                        <span
+                          className={
+                            item.canread ? 'text-green-500' : 'text-gray-400'
+                          }
+                        >
                           R
                         </span>
                         /
-                        <span className={item.canwrite ? "text-blue-500" : "text-gray-400"}>
+                        <span
+                          className={
+                            item.canwrite ? 'text-blue-500' : 'text-gray-400'
+                          }
+                        >
                           W
                         </span>
                       </div>
@@ -253,28 +264,28 @@ export default function MtcpAddressPage() {
                     {/* SCALING */}
                     <td>
                       <div className="text-xs">
-                        <div>G: {tag?.gain ?? "-"}</div>
-                        <div>O: {tag?.offset ?? "-"}</div>
+                        <div>G: {tag?.gain ?? '-'}</div>
+                        <div>O: {tag?.offset ?? '-'}</div>
                       </div>
                     </td>
 
                     {/* UNIT */}
-                    <td>{tag?.unit ?? "-"}</td>
+                    <td>{tag?.unit ?? '-'}</td>
 
                     {/* ALARM */}
                     <td>
                       <div className="text-xs leading-4">
                         <div className="text-red-500">
-                          LL: {tag?.lowlow ?? "-"}
+                          LL: {tag?.lowlow ?? '-'}
                         </div>
                         <div className="text-yellow-500">
-                          L: {tag?.low ?? "-"}
+                          L: {tag?.low ?? '-'}
                         </div>
                         <div className="text-yellow-500">
-                          H: {tag?.high ?? "-"}
+                          H: {tag?.high ?? '-'}
                         </div>
                         <div className="text-red-500">
-                          HH: {tag?.highhigh ?? "-"}
+                          HH: {tag?.highhigh ?? '-'}
                         </div>
                       </div>
                     </td>
@@ -299,13 +310,26 @@ export default function MtcpAddressPage() {
                         </button>
                       </Tooltip>
                     </td>
+                    <td className="p-2 font-medium">
+                      {(() => {
+                        const value = WS_nodered.data?.find(
+                          (itemWS: any) => itemWS.id === item.tags?.[0]?.id
+                        )?.value
+                        const trueState = tag?.booltruestate
+                        const falseState = tag?.boolfalsestate
+                        if (value === true) return trueState
+                        if (value === false) return falseState
+
+                        return value
+                      })()}
+                    </td>
                   </tr>
-                );
+                )
               })}
 
               {data.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="text-center p-4 text-gray-400">
+                  <td colSpan={9} className="p-4 text-center text-gray-400">
                     No data
                   </td>
                 </tr>
@@ -326,5 +350,5 @@ export default function MtcpAddressPage() {
         />
       </div>
     </div>
-  );
+  )
 }

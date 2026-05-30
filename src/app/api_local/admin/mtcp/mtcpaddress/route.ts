@@ -1,14 +1,14 @@
-import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import { wsSender } from "@/lib/ws/wsSender";
-import { FlowMtcpPush } from "@/lib/nodered/FlowPusher/mtcp/flowPusherMtcp";
+import { prisma } from '@/lib/prisma'
+import { NextResponse } from 'next/server'
+import { wsSender } from '@/lib/ws/wsSender'
+import { FlowMtcpPush } from '@/lib/nodered/FlowPusher/mtcp/flowPusherMtcp'
 /* =========================
    GET ALL / FILTER
 ========================= */
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const mtcpId = searchParams.get("mtcpId");
+    const { searchParams } = new URL(req.url)
+    const mtcpId = searchParams.get('mtcpId')
 
     const data = await prisma.mtcpaddress.findMany({
       where: mtcpId ? { mtcpId } : {},
@@ -16,17 +16,14 @@ export async function GET(req: Request) {
         tags: true,
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: 'desc',
       },
-    });
+    })
 
-    return NextResponse.json(data);
+    return NextResponse.json(data)
   } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { message: "Failed to fetch" },
-      { status: 500 }
-    );
+    console.error(err)
+    return NextResponse.json({ message: 'Failed to fetch' }, { status: 500 })
   }
 }
 
@@ -35,7 +32,7 @@ export async function GET(req: Request) {
 ========================= */
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await req.json()
     console.log(body)
 
     const result = await prisma.$transaction(async (tx) => {
@@ -49,7 +46,7 @@ export async function POST(req: Request) {
           canread: body.canread,
           canwrite: body.canwrite,
         },
-      });
+      })
 
       // 🔹 create tag (default 1)
       if (body.tag) {
@@ -62,25 +59,24 @@ export async function POST(req: Request) {
             gain: body.tag.gain ?? null,
             unit: body.tag.unit ?? null,
 
+            boolfalsestate: body.tag.boolfalsestate ?? null,
+            booltruestate: body.tag.booltruestate ?? null,
             lowlow: body.tag.lowlow ?? null,
             low: body.tag.low ?? null,
             high: body.tag.high ?? null,
             highhigh: body.tag.highhigh ?? null,
           },
-        });
+        })
       }
 
-      return address;
-    });
-      await FlowMtcpPush()
-     wsSender.reload(`/mtcpaddresssettings-${body.mtcpId}`);
-     
-    return NextResponse.json(result);
+      return address
+    })
+    await FlowMtcpPush()
+    wsSender.reload(`/mtcpaddresssettings-${body.mtcpId}`)
+
+    return NextResponse.json(result)
   } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { message: "Failed to create" },
-      { status: 500 }
-    );
+    console.error(err)
+    return NextResponse.json({ message: 'Failed to create' }, { status: 500 })
   }
 }

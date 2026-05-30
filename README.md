@@ -9,9 +9,12 @@ node:
 
 
 FOR Prisma
-1. npx primsa generate-->Generate COde Prisama 
-2. npx primsa db seed --->Untuk masukan isi DB Pertama
-3. npx prisma migrate dev --name init     ====>Untuk memebuat Migrasi
+1. npx prisma generate-->Generate COde Prisama 
+2. npx prisma db seed --->Untuk masukan isi DB Pertama
+3. npx prisma migrate dev --name init     ====>Untuk memebuat Migrasi hany untuk init atau perama kali
+4. npx prisma migrate dev --name add_customer_table   ===gunkan ini untuk tabahan data base
+4. npx prisma migrate reset     ===> RESET Migrasi
+
 
 
 for all

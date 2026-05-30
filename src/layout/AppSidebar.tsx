@@ -22,6 +22,7 @@ import {
   FaShieldAlt,
   FaChevronDown,
   FaEllipsisH,
+  FaTags
 } from "react-icons/fa";
 import {BsCpuFill,BsStackOverflow} from 'react-icons/bs'
 
@@ -61,6 +62,12 @@ const navItems: NavItem[] = [
     path: "/account-settings",
     roles: ["admin"],
   },
+   {
+    name: "Tag Status",
+    icon: <FaTags />,
+    path: "/menu/tagStatus/mtcp",
+    roles: ["admin", "operator"],
+  },
   {
     name: "Tables",
     icon: <FaTable />,
@@ -72,6 +79,7 @@ const navItems: NavItem[] = [
       },
     ],
   },
+ 
   
 ];
 

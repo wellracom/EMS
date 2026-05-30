@@ -33,7 +33,7 @@ export function createSubflow(
                     "type": "json"
                 }
             ],
-            "x": 320,
+            "x": 520,
             "y": Posisiton,
             "wires": [],
             "subflow": idSubflow

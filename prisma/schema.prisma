@@ -115,6 +115,8 @@ model Tag {
   high            Decimal? @db.Decimal(10, 3)
   highhigh        Decimal? @db.Decimal(10, 3)
 
+  booltruestate   String?
+boolfalsestate   String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

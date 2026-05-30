@@ -1,29 +1,26 @@
-import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import { wsSender } from "@/lib/ws/wsSender";
-import { FlowMtcpPush } from "@/lib/nodered/FlowPusher/mtcp/flowPusherMtcp";
+import { prisma } from '@/lib/prisma'
+import { NextResponse } from 'next/server'
+import { wsSender } from '@/lib/ws/wsSender'
+import { FlowMtcpPush } from '@/lib/nodered/FlowPusher/mtcp/flowPusherMtcp'
 /* =========================
    GET BY ID
 ========================= */
 export async function GET(
   req: Request,
-   context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-      const { id } = await context.params; // ✅ WAJIB await
+    const { id } = await context.params // ✅ WAJIB await
     const data = await prisma.mtcpaddress.findUnique({
       where: { id: id },
       include: {
         tags: true,
       },
-    });
+    })
 
-    return NextResponse.json(data);
+    return NextResponse.json(data)
   } catch (err) {
-    return NextResponse.json(
-      { message: "Failed to fetch" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: 'Failed to fetch' }, { status: 500 })
   }
 }
 
@@ -32,17 +29,14 @@ export async function GET(
 ========================= */
 export async function PUT(
   req: Request,
- context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-     const { id } = await context.params; // ✅ WAJIB await
-    const body = await req.json();
+    const { id } = await context.params // ✅ WAJIB await
+    const body = await req.json()
 
     if (!id) {
-      return NextResponse.json(
-        { message: "ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: 'ID is required' }, { status: 400 })
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -58,7 +52,7 @@ export async function PUT(
           canread: Boolean(body.canread),
           canwrite: Boolean(body.canwrite),
         },
-      });
+      })
 
       /* =========================
          HANDLE TAG
@@ -66,8 +60,8 @@ export async function PUT(
       if (body.tag) {
         const existingTag = await tx.tag.findFirst({
           where: { mtcpaddressId: id },
-          orderBy: { createdAt: "asc" }, // 🔥 biar konsisten
-        });
+          orderBy: { createdAt: 'asc' }, // 🔥 biar konsisten
+        })
 
         if (existingTag) {
           await tx.tag.update({
@@ -75,73 +69,53 @@ export async function PUT(
             data: {
               name: body.tag.name,
 
-              offset: body.tag.offset
-                ? Number(body.tag.offset)
-                : null,
-              gain: body.tag.gain
-                ? Number(body.tag.gain)
-                : null,
+              offset: body.tag.offset ? Number(body.tag.offset) : null,
+              gain: body.tag.gain ? Number(body.tag.gain) : null,
               unit: body.tag.unit ?? null,
 
-              lowlow: body.tag.lowlow
-                ? Number(body.tag.lowlow)
-                : null,
-              low: body.tag.low
-                ? Number(body.tag.low)
-                : null,
-              high: body.tag.high
-                ? Number(body.tag.high)
-                : null,
-              highhigh: body.tag.highhigh
-                ? Number(body.tag.highhigh)
-                : null,
+              boolfalsestate: body.tag.boolfalsestate ?? null,
+              booltruestate: body.tag.booltruestate ?? null,
+
+              lowlow: body.tag.lowlow ? Number(body.tag.lowlow) : null,
+              low: body.tag.low ? Number(body.tag.low) : null,
+              high: body.tag.high ? Number(body.tag.high) : null,
+              highhigh: body.tag.highhigh ? Number(body.tag.highhigh) : null,
             },
-          });
+          })
         } else {
           await tx.tag.create({
             data: {
               mtcpaddressId: id,
               name: body.tag.name,
 
-              offset: body.tag.offset
-                ? Number(body.tag.offset)
-                : null,
-              gain: body.tag.gain
-                ? Number(body.tag.gain)
-                : null,
+              offset: body.tag.offset ? Number(body.tag.offset) : null,
+              gain: body.tag.gain ? Number(body.tag.gain) : null,
               unit: body.tag.unit ?? null,
-
-              lowlow: body.tag.lowlow
-                ? Number(body.tag.lowlow)
-                : null,
-              low: body.tag.low
-                ? Number(body.tag.low)
-                : null,
-              high: body.tag.high
-                ? Number(body.tag.high)
-                : null,
-              highhigh: body.tag.highhigh
-                ? Number(body.tag.highhigh)
-                : null,
+              boolfalsestate: body.tag.boolfalsestate ?? null,
+              booltruestate: body.tag.booltruestate ?? null,
+              lowlow: body.tag.lowlow ? Number(body.tag.lowlow) : null,
+              low: body.tag.low ? Number(body.tag.low) : null,
+              high: body.tag.high ? Number(body.tag.high) : null,
+              highhigh: body.tag.highhigh ? Number(body.tag.highhigh) : null,
             },
-          });
+          })
         }
       }
 
-      return address;
-    });
-    wsSender.reload(`/mtcpaddresssettings-${id}`);
+      return address
+    })
+    wsSender.reload(`/mtcpaddresssettings-${id}`)
     await FlowMtcpPush()
-    return NextResponse.json(result);
+    return NextResponse.json(result)
   } catch (err: any) {
-    console.error("PUT ERROR:", err);
+    console.error('PUT ERROR:', err)
 
     return NextResponse.json(
       {
-        message: err.message || "Failed to update",
+        message: err.message || 'Failed to update',
       },
       { status: 500 }
-    );
+    )
   }
 }
 
@@ -150,20 +124,17 @@ export async function PUT(
 ========================= */
 export async function DELETE(
   req: Request,
- context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
-      const { id } = await context.params; // ✅ WAJIB await
+  const { id } = await context.params // ✅ WAJIB await
   try {
     await prisma.mtcpaddress.delete({
       where: { id: id },
-    });
-await FlowMtcpPush()
- wsSender.reload(`/mtcpaddresssettings-${id}`);
-    return NextResponse.json({ success: true });
+    })
+    await FlowMtcpPush()
+    wsSender.reload(`/mtcpaddresssettings-${id}`)
+    return NextResponse.json({ success: true })
   } catch (err) {
-    return NextResponse.json(
-      { message: "Failed to delete" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: 'Failed to delete' }, { status: 500 })
   }
 }
