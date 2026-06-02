@@ -17,6 +17,8 @@ model User {
    refreshTokens RefreshToken[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+
+  userLoggerSetTag LoggerSetTag[]
 }
 
 
@@ -123,6 +125,7 @@ boolfalsestate   String?
   mtcpaddress     Mtcpaddress? @relation(fields: [mtcpaddressId], references: [id], onDelete: Cascade)
 
   Taglogger      LoggerTagslist[]
+  TagLoggerSetValue LoggerSetTag[]
 
 }
 
@@ -200,5 +203,19 @@ model LoggerDeviceslist{
    updatedAt   DateTime @updatedAt
     loggeriddevives  Logger @relation(fields:[id_Logger],references:[id],onDelete:Cascade)
    LoggerMtcp   Mtcplist? @relation(fields:[id_Mtcp],references:[id],onDelete:Cascade)
+}
+
+
+model LoggerSetTag{
+   id          String   @id @default(cuid())
+   id_tags     String
+   id_user     String
+   value       String
+
+   createdAt   DateTime @default(now())
+   updatedAt   DateTime @updatedAt
+
+   LoggerSetTag Tag @relation(fields:[id_tags],references:[id],onDelete:Cascade)
+   loggerSetTagUser User @relation(fields:[id_user],references:[id],onDelete:Cascade)
 }
 

@@ -4,6 +4,9 @@ import { createSubflow } from './fuctionSubflow'
 import { createHTTPIn } from './fuctionHTTP_in'
 
 export function mtcpGenerateFlow(data: any) {
+  const toNumberOrNull = (v: any) => {
+    return v === null || v === undefined || v === '' ? null : Number(v)
+  }
   const FlowId = process.env.NodeRed_MTCP_FLOW || 'mtcp_flow'
   const subflowMtcpid = process.env.NodeRed_MTCP_SUBFLOW || 'mtcp_subflow'
 
@@ -42,14 +45,14 @@ export function mtcpGenerateFlow(data: any) {
         startaddres: item?.address ?? '',
         typedata: item?.typedata ?? '',
         scaling: {
-          offsite: Number(item?.tags[0]?.offset) ?? '?',
-          gain: Number(item?.tags[0]?.gain) ?? '?',
+          offsite: toNumberOrNull(item?.tags?.[0]?.offset),
+          gain: toNumberOrNull(item?.tags?.[0]?.gain),
         },
         alram: {
-          lowlow: Number(item?.tags[0]?.lowlow) ?? '?',
-          low: Number(item?.tags[0]?.low) ?? '?',
-          high: Number(item?.tags[0]?.high) ?? '?',
-          highhigh: Number(item?.tags[0]?.highhigh) ?? '?',
+          lowlow: toNumberOrNull(item?.tags?.[0]?.lowlow),
+          low: toNumberOrNull(item?.tags?.[0]?.low),
+          high: toNumberOrNull(item?.tags?.[0]?.high),
+          highhigh: toNumberOrNull(item?.tags?.[0]?.highhigh),
         },
       })
     })
