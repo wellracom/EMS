@@ -22,6 +22,7 @@ import {
 } from 'react-icons/fa'
 import { MdPreview } from 'react-icons/md'
 import { HiBellAlert } from 'react-icons/hi2'
+import { BsBuildingGear } from 'react-icons/bs'
 import { BsCpuFill, BsStackOverflow } from 'react-icons/bs'
 
 // ================= TYPES =================
@@ -72,6 +73,7 @@ const navItems: NavItem[] = [
   {
     name: 'Real-Time',
     icon: <MdPreview />,
+
     subItems: [
       {
         name: 'Tables',
@@ -96,26 +98,8 @@ const navItems: NavItem[] = [
   {
     name: 'History',
     icon: <FaHistory />,
-    subItems: [
-      {
-        name: 'Tables',
-        icon: <FaTable />,
-        path: '/basic-tables',
-        roles: ['admin', 'operator'],
-      },
-      {
-        name: 'Chart',
-        icon: <FaChartArea />,
-        path: '/menu/History/Chart',
-        roles: ['admin', 'operator'],
-      },
-      {
-        name: 'Alarm',
-        icon: <HiBellAlert />,
-        path: '/basic-tables',
-        roles: ['admin', 'operator'],
-      },
-    ],
+    path: '/menu/History',
+    roles: ['admin', 'operator'],
   },
 ]
 
@@ -143,8 +127,8 @@ const othersItems: NavItem[] = [
     path: '/controller/modbus-tcp',
   },
   {
-    name: 'System Logger Interval',
-    icon: <BsStackOverflow />,
+    name: 'System Settings',
+    icon: <BsBuildingGear />,
     path: '/admin/SystemSettings',
   },
   // {

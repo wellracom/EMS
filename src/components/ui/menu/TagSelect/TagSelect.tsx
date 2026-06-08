@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { apiClient } from '@/lib/apiclient/apiClient'
 type Props = {
-  onChangeSelected: (ids: string[]) => void
+  onChangeSelected: (data: any[]) => void
 }
 type TreeNode = {
   id: string
@@ -12,15 +12,15 @@ type TreeNode = {
   expanded?: boolean
   children?: TreeNode[]
 }
-const getCheckedLeafIds = (nodes: TreeNode[]): string[] => {
-  const result: string[] = []
+const getCheckedLeafIds = (nodes: TreeNode[]): any[] => {
+  const result: any[] = []
 
   const walk = (items: TreeNode[]) => {
     for (const node of items) {
       const isLeaf = !node.children || node.children.length === 0
 
       if (isLeaf && node.checked) {
-        result.push(node.id)
+        result.push({ ids: node.id, name: node.label })
       }
 
       if (node.children && node.children.length > 0) {

@@ -3,10 +3,28 @@
 import { useState } from 'react'
 import { FaBars, FaHistory } from 'react-icons/fa'
 import TreeCheckbox from '@/components/ui/menu/TagSelect/TagSelect'
-
+import ScadaTrend from '@/components/ui/menu/Chart/HistoricalChart'
+import DateTimePicker from '@/components/ui/DatetimePicker/Datetimepicker'
+import SCADADateRangePicker from '@/components/ui/DatetimePicker/DateTimepickerRangs'
 export default function HistoryPage() {
   const [showSidebar, setShowSidebar] = useState(true)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+
+  const now = Date.now()
+
+  const pressure: [number, number][] = []
+  const flow: [number, number][] = []
+  const temp: [number, number][] = []
+
+  for (let i = 0; i < 1000; i++) {
+    const time = now - (1000 - i) * 60000
+
+    pressure.push([time, 10 + Math.random() * 5])
+
+    flow.push([time, 50 + Math.random() * 10])
+
+    temp.push([time, 30 + Math.random() * 3])
+  }
   return (
     <div className="h-[calc(100vh-80px)] w-full">
       <div className="flex h-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
@@ -36,39 +54,55 @@ export default function HistoryPage() {
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
               <button
                 onClick={() => setShowSidebar(!showSidebar)}
-                className="rounded-lg p-2 transition hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="rounded-lg p-2 transition hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
               >
                 <FaBars />
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <FaHistory className="text-lg text-blue-500" />
                 <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                   History
                 </h2>
               </div>
             </div>
-
-            <div className="text-sm text-gray-500">Historical Data Viewer</div>
+            <div className="flex-col-2 flex items-center-safe gap-1">
+              <SCADADateRangePicker />
+              <div className="text-sm text-gray-500">
+                Historical Data Viewer
+              </div>
+            </div>
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-auto bg-gray-50 p-4 dark:bg-gray-950">
-            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-              <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-gray-100">
-                Historical Trend
+          <div className="flex-1 overflow-auto bg-gray-50 p-2 dark:bg-gray-950">
+            <div className="rounded-xl border border-gray-200 bg-white p-2 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+              <div className="mt-6 flex items-center justify-center rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
+                <ScadaTrend
+                  series={[
+                    {
+                      name: 'Pressure',
+                      data: pressure,
+                    },
+                    {
+                      name: 'Flow',
+                      data: flow,
+                    },
+                    {
+                      name: 'Temperature',
+                      data: temp,
+                    },
+                  ]}
+                />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                Historical Table
               </h3>
-
-              <p className="text-sm text-gray-500">
-                Select one or more tags from the left panel to display
-                historical data.
-              </p>
-
-              <div className="mt-6 flex h-[500px] items-center justify-center rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
-                <span className="text-gray-400">Chart Area</span>
+              <div className="mt-6 flex items-center justify-center rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
+                <span className="text-gray-400">Table Area</span>
               </div>
               <pre className="mt-4 overflow-auto rounded bg-gray-100 p-2 text-xs">
                 {JSON.stringify(selectedIds, null, 2)}
